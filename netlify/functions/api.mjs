@@ -45,6 +45,7 @@ export default async (req) => {
       const b = await readBody(req); const adcode = String(b.adcode || '');
       if (!isAdcode(adcode)) return json({ error: 'adcode 必须是六位数字' }, 400);
       
+
 const clean = (items, kind) => {
   if (!Array.isArray(items) || items.length < 3) {
     throw new Error(`${kind}至少需要3条记录`);
@@ -56,6 +57,7 @@ const clean = (items, kind) => {
     if (!item || typeof item.name !== 'string' || !item.name.trim()) {
       throw new Error(`${kind}第${i + 1}条缺少有效名称`);
     }
+
     return {
       name: item.name.trim(),
       category: String(item.category || '').trim(),
