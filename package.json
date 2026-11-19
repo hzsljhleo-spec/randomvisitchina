@@ -1,0 +1,13 @@
+{
+  "name": "china-random-travel-wheel-netlify",
+  "version": "5.0.0",
+  "private": true,
+  "description": "China travel wheel with Netlify Functions and persistent district recommendation data",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "node scripts/check-project.mjs"
+  },
+  "engines": { "node": ">=22.12.0" },
+  "dependencies": { "@netlify/blobs": "^11.1.9" },
+  "devDependencies": { "netlify-cli": "^27.16.2" }
+}

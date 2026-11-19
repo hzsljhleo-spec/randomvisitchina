@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>中国随机旅行目的地转盘</title>
+<style>
+:root{--ink:#183247;--muted:#536b7a;--line:#d8e7ef;--paper:rgba(255,255,255,.94);--bg:#eaf6ff;--accent:#ff6b35;--navy:#1769aa}
+*{box-sizing:border-box}body{margin:0;background:var(--bg) url("china_travel_collage.png") center/cover fixed no-repeat;color:var(--ink);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;position:relative}body:before{content:"";position:fixed;inset:0;background:linear-gradient(135deg,rgba(235,249,255,.82),rgba(255,255,255,.76) 48%,rgba(255,244,226,.78));z-index:-1;pointer-events:none}main{position:relative}
+main{max-width:920px;margin:0 auto;padding:26px 16px 60px}.head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+h1{font-size:clamp(24px,4vw,36px);margin:0}.sub{color:var(--muted);font-size:13px}.head{min-height:28px}.head>div{display:none}.pill{background:#e5efed;color:#245e51;padding:5px 10px;border-radius:30px;font-size:12px}
+.card{background:var(--paper);backdrop-filter:blur(9px);border:1px solid rgba(255,255,255,.8);border-radius:20px;padding:20px;margin-top:18px;box-shadow:0 10px 30px rgba(23,91,130,.10)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.stat{background:linear-gradient(135deg,#e1f5ff,#fff0d9);border:1px solid #d5eaf5;border-radius:14px;padding:12px}.stat b{display:block;font-size:22px}
+.wheelwrap{width:min(82vw,390px);aspect-ratio:1;margin:18px auto;position:relative}.wheel{width:100%;height:100%;border-radius:50%;border:9px solid #fff;outline:5px solid #ffb52e;box-shadow:0 10px 28px rgba(15,75,120,.25);transition:transform 5s cubic-bezier(.12,.72,.12,1);background:conic-gradient(#ff595e 0 30deg,#ff924c 30deg 60deg,#ffca3a 60deg 90deg,#8ac926 90deg 120deg,#52b788 120deg 150deg,#00b4d8 150deg 180deg,#4895ef 180deg 210deg,#6a4c93 210deg 240deg,#b5179e 240deg 270deg,#f72585 270deg 300deg,#fb6f92 300deg 330deg,#90be6d 330deg 360deg)}
+.pointer{position:absolute;z-index:2;top:-10px;left:50%;transform:translateX(-50%);border-left:17px solid transparent;border-right:17px solid transparent;border-top:36px solid var(--accent);filter:drop-shadow(0 2px 2px #0004)}
+.center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:116px;height:116px;background:linear-gradient(145deg,#fff,#fff1cc);border:6px solid #ffb52e;border-radius:50%;z-index:2;box-shadow:0 3px 16px #173e5566;display:flex;align-items:center;justify-content:center;text-align:center;padding:10px;color:#a33b37;font-size:17px;font-weight:850;line-height:1.35;letter-spacing:1px}
+button,select,input{font:inherit;border-radius:10px;padding:10px 12px;border:1px solid var(--line);background:white;color:var(--ink)}
+button{cursor:pointer;font-weight:650}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:linear-gradient(100deg,#ff6b35,#f72585 55%,#6a4c93);color:white;border:0;box-shadow:0 7px 18px rgba(230,72,117,.25);width:100%;font-size:18px;padding:14px}.primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}label{display:block;font-size:13px;color:var(--muted)}label select,label input{display:block;width:100%;margin-top:5px}
+.top-result{margin-top:18px;scroll-margin-top:12px}.recommendations{margin-top:12px;padding-top:10px;border-top:1px dashed #d8b9a8}.recommendations h3{font-size:16px;margin:0 0 8px}.recommendation{padding:8px 0;border-bottom:1px solid #eadbd4}.local-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}.local-panel{background:rgba(255,255,255,.72);border:1px solid #f0d9c8;border-radius:12px;padding:12px}.local-panel h3{margin:0 0 7px;font-size:16px}.local-panel ul{margin:0;padding-left:20px}.local-panel li{padding:3px 0}.local-note{font-size:12px;color:var(--muted);margin-top:8px}@media(max-width:560px){.local-grid{grid-template-columns:1fr}}.recommendation:last-child{border:0}.recommendation b{display:block}.recommendation small{color:var(--muted)}.result{background:linear-gradient(120deg,rgba(255,255,255,.97),rgba(255,239,215,.96));border:2px solid #ffb52e;border-radius:16px;padding:17px;margin-top:15px;box-shadow:0 8px 24px rgba(239,142,52,.15)}.result h2{margin:3px 0;font-size:25px}
+input[type=checkbox]{width:auto}.muted{color:var(--muted);font-size:13px}.tabs{display:flex;gap:14px;border-bottom:1px solid var(--line);margin-top:15px;overflow:auto}.tab{border:0;background:none;border-radius:0;padding:9px 3px;color:var(--muted);white-space:nowrap}.tab.active{border-bottom:3px solid #f72585;color:#c2185b;font-weight:750}
+.entry{padding:11px 3px;border-bottom:1px solid var(--line);font-size:13px}.entry:last-child{border:0}.entry small{display:block;color:var(--muted);margin-top:3px}
+#entries{max-height:420px;overflow:auto}.right{margin-left:auto}.foot{font-size:12px;color:var(--muted);line-height:1.6}
+@media(max-width:520px){.card{padding:15px}.stats .stat{padding:9px}.stat b{font-size:18px}}
+</style></head>
+<body><main>
+<header class="head"><div></div><span id="status" class="pill">正在连接目的地数据库…</span></header>
+<section id="result" class="result top-result" hidden><div class="muted">本次随机结果</div><h2 id="resultname"></h2><div id="resultpath"></div><div id="recommendations" class="recommendations"></div><div class="row" style="margin-top:12px"><button id="copy">复制地点</button><button id="map">在地图中查看</button></div></section>
+<section class="card">
+<div style="text-align:center"><b>下一站，去哪里？</b><div class="muted">从当前筛选结果中随机抽取一个目的地</div></div>
+<div class="wheelwrap"><div class="pointer"></div><div id="wheel" class="wheel"></div><div class="center">中国随机<br>旅行目的地</div></div>
+<div id="wheelhint" class="muted" style="text-align:center">正在加载数据，请稍候…</div>
+<button id="spin" class="primary" disabled>🎲 开始抽取</button>
+</section>
+<section class="card">
+<h3 style="margin:0 0 12px">旅行探索设置</h3>
+<div class="row"><label>想探索哪一类目的地？<select id="mode"><option value="admin">行政区目的地</option><option value="site">旅游景点</option><option value="culture">文化活动与当地体验</option><option value="food">美食目的地</option></select></label><label id="levelwrap">行政区级别<select id="type"><option value="1">市级</option><option value="2" selected>县／区／县级市</option><option value="3">乡／镇／街道</option></select></label><label id="foodtypewrap" style="display:none">想吃哪一类？<select id="foodtype"><option value="all">不限美食类型</option><option value="火锅">火锅</option><option value="烧烤">烧烤</option><option value="面食">面食</option><option value="地方小吃">地方小吃</option><option value="海鲜">海鲜</option><option value="早茶">早茶</option><option value="甜品糕点">甜品糕点</option></select></label>
+<label>地区范围<select id="geo"><option value="all">中国大陆＋香港＋澳门＋台湾</option><option value="mainland">中国大陆</option><option value="hkmo">香港＋澳门</option><option value="taiwan">台湾</option></select></label></div>
+<label style="margin-top:12px;color:var(--ink)"><input type="checkbox" id="avoid" checked> 本次抽取中避免重复</label>
+<div id="pool" class="muted" style="margin-top:8px"></div>
+</section>
+<section class="card">
+<div class="row" style="align-items:center"><h3 style="margin:0" id="listtitle">搜索行政区</h3><span class="muted right" id="matches"></span></div>
+<div class="row" style="margin-top:12px"><input id="search" placeholder="搜索名称、城市、省份或关键词…"><button id="clear">清空</button></div>
+<div class="tabs"><button class="tab active" data-tab="all">全部</button><button class="tab" data-tab="1">市级</button><button class="tab" data-tab="2">县区级</button><button class="tab" data-tab="3">乡镇级</button><button class="tab" data-tab="history">抽取记录</button></div>
+<div class="row" style="align-items:center;margin-top:10px"><span class="muted" id="pageinfo">等待数据加载</span><button id="prev">← 上一页</button><button id="next">下一页 →</button></div>
+<div id="entries"><p class="muted">行政区列表将在数据加载后显示。</p></div>
+<button id="export" style="width:100%;margin-top:12px" disabled>⬇ 导出完整行政区数据库 CSV</button>
+<p class="foot" id="exportnote">CSV 将导出当前所选地区的市级、县区级及乡镇级行政区（不限于当前搜索结果），包含行政区划代码、名称、级别、上级代码、完整行政层级路径及拼音。</p><button id="exporttravel" style="width:100%;margin-top:8px;display:none">⬇ 导出景点与文化体验 CSV</button>
+</section>
+<section class="card"><h3 style="margin:0">最近抽取结果</h3><div id="history" class="muted" style="margin-top:8px">还没有抽取记录。</div><button id="clearhistory" style="margin-top:10px">清空记录</button></section>
+<section class="stats"><div class="stat"><b id="total">—</b><span class="muted">已加载目的地</span></div><div class="stat"><b id="counties">—</b><span class="muted">县区级行政区</span></div><div class="stat"><b id="towns">—</b><span class="muted">乡镇级行政区</span></div></section>
+<p class="foot">美食推荐库更新参考：2026年大众点评必吃榜公开发布信息、各地文旅部门及非遗美食线路公开资料，并结合可公开检索的本地探店与旅行内容整理。大众点评2026年必吃榜覆盖264座城市及地区；平台榜单反映餐厅与用户评价，不等同于官方区县菜谱。本页面不直接抓取美团／大众点评／小红书App内部数据或用户个人内容。地方美食为旅行线索，区县未有足够公开依据时会回退到市级／地区级参考，建议出行前结合最新评价核实。</p><p class="foot">参考资料：<a href="https://www.meituan.com/news/NN260625162008376" target="_blank" rel="noopener">大众点评2026必吃榜发布信息</a>；<a href="https://www.ctnews.com.cn/dongtai/content/2026-01/27/content_183452.html" target="_blank" rel="noopener">2026年非遗美食特色旅游线路</a>；<a href="https://app.xinhuanet.com/news/article.html?articleId=20260413841b087ea7b24cddb52202a1fe87f2f2" target="_blank" rel="noopener">2026各地时令与地方美食报道</a>。小红书／美团／大众点评中的实时笔记、评分、门店及营业状态未接入实时接口。</p><p class="foot">行政区划数据来源： <a href="https://github.com/roy-tian/cn-divisions" target="_blank" rel="noopener">cn-divisions</a>，四级行政区划数据；本页面抽取层级限定为市级、县区级、乡镇级三级。中国大陆数据快照不早于 2023 年 4 月；香港、澳门及台湾条目较早，仅供参考。快照之后的行政区划调整可能尚未收录。本工具仅用于随机地点灵感，不代表景点开放或当地实时情况。</p>
+</main>
+<script>
+(()=>{
+const $=id=>document.getElementById(id);let data=[],byCode=new Map(),pool=[],history=[],tab='all',page=0,chosen=null,busy=false;
+const PAGE=60,srcs=['https://cdn.jsdelivr.net/npm/cn-divisions@latest/data/divisions.jsonl','https://raw.githubusercontent.com/roy-tian/cn-divisions/master/data/divisions.jsonl'];
+const travelItems=[
+{kind:'site',name:'故宫博物院（紫禁城）',city:'北京',region:'北京',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'皇家历史'},
+{kind:'site',name:'慕田峪长城',city:'北京',region:'北京',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界级地标'},
+{kind:'culture',name:'京剧欣赏',city:'北京',region:'北京',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统表演艺术'},
+{kind:'culture',name:'胡同漫步与四合院探访',city:'北京',region:'北京',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'市井生活'},
+{kind:'site',name:'外滩',city:'上海',region:'上海',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'城市地标'},
+{kind:'site',name:'豫园',city:'上海',region:'上海',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'古典园林'},
+{kind:'culture',name:'海派茶楼与点心体验',city:'上海',region:'上海',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'饮食文化'},
+{kind:'site',name:'西湖',city:'杭州',region:'浙江',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界文化景观'},
+{kind:'culture',name:'龙井采茶与茶艺体验',city:'杭州',region:'浙江',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'茶文化'},
+{kind:'site',name:'乌镇水乡',city:'桐乡',region:'浙江',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'江南水乡'},
+{kind:'culture',name:'绍兴黄酒与地方美食品鉴',city:'绍兴',region:'浙江',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'饮食传统'},
+{kind:'site',name:'黄山',city:'黄山',region:'安徽',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'山岳风光'},
+{kind:'culture',name:'徽派建筑与徽墨制作体验',city:'黄山',region:'安徽',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统工艺'},
+{kind:'site',name:'杭州西湖文化景观',city:'杭州',region:'浙江',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然与人文景观'},
+{kind:'site',name:'秦始皇帝陵博物院（兵马俑）',city:'西安',region:'陕西',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'考古遗址'},
+{kind:'site',name:'西安城墙',city:'西安',region:'陕西',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'古城文化'},
+{kind:'culture',name:'唐风汉服体验',city:'西安',region:'陕西',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'文化遗产体验'},
+{kind:'culture',name:'陕西皮影戏或秦腔欣赏',city:'西安',region:'陕西',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'民俗表演'},
+{kind:'site',name:'大雁塔',city:'西安',region:'陕西',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'宗教文化遗产'},
+{kind:'site',name:'成都大熊猫繁育研究基地',city:'成都',region:'四川',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'野生动物'},
+{kind:'culture',name:'川剧变脸表演',city:'成都',region:'四川',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统表演艺术'},
+{kind:'culture',name:'四川火锅体验',city:'成都',region:'四川',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'饮食文化'},
+{kind:'site',name:'乐山大佛',city:'乐山',region:'四川',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'site',name:'九寨沟',city:'阿坝',region:'四川',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然风光'},
+{kind:'site',name:'张家界国家森林公园',city:'张家界',region:'湖南',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然风光'},
+{kind:'culture',name:'湘西土家族、苗族民俗体验',city:'湘西',region:'湖南',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'民族文化'},
+{kind:'site',name:'凤凰古城',city:'湘西',region:'湖南',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'历史古镇'},
+{kind:'site',name:'长江三峡',city:'宜昌—重庆',region:'湖北／重庆',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'江河游览'},
+{kind:'culture',name:'楚式漆器与传统手工艺体验',city:'武汉',region:'湖北',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统工艺'},
+{kind:'site',name:'洪崖洞',city:'重庆',region:'重庆',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'城市地标'},
+{kind:'culture',name:'重庆火锅与茶馆文化',city:'重庆',region:'重庆',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'美食与市井文化'},
+{kind:'site',name:'龙门石窟',city:'洛阳',region:'河南',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'少林功夫表演',city:'登封',region:'河南',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'武术'},
+{kind:'site',name:'云冈石窟',city:'大同',region:'山西',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'平遥古城院落与漆艺体验',city:'晋中',region:'山西',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统技艺'},
+{kind:'site',name:'敦煌莫高窟',city:'敦煌',region:'甘肃',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'敦煌丝路乐舞体验',city:'敦煌',region:'甘肃',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统表演艺术'},
+{kind:'site',name:'张掖七彩丹霞国家地质公园',city:'张掖',region:'甘肃',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'地质景观'},
+{kind:'site',name:'青海湖',city:'海北／海南',region:'青海',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然风光'},
+{kind:'culture',name:'藏文化与寺院礼仪体验',city:'西宁',region:'青海',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'活态文化'},
+{kind:'site',name:'布达拉宫',city:'拉萨',region:'西藏',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'酥油茶与藏族传统音乐体验',city:'拉萨',region:'西藏',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'美食与音乐'},
+{kind:'site',name:'喀纳斯湖',city:'阿勒泰',region:'新疆',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然风光'},
+{kind:'culture',name:'维吾尔族音乐舞蹈与巴扎体验',city:'喀什',region:'新疆',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'活态文化'},
+{kind:'site',name:'喀什古城',city:'喀什',region:'新疆',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'古城文化'},
+{kind:'site',name:'洱海与大理古城',city:'大理',region:'云南',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'山水与古镇'},
+{kind:'culture',name:'白族扎染体验',city:'大理',region:'云南',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'手作体验'},
+{kind:'site',name:'石林风景区',city:'昆明',region:'云南',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'地质景观'},
+{kind:'culture',name:'西双版纳傣族泼水文化体验',city:'景洪',region:'云南',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'节庆文化'},
+{kind:'site',name:'桂林山水与漓江风光',city:'桂林',region:'广西',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然与人文景观'},
+{kind:'culture',name:'壮锦编织或壮族民歌体验',city:'南宁',region:'广西',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'民族手工艺'},
+{kind:'site',name:'黄果树瀑布',city:'安顺',region:'贵州',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然风光'},
+{kind:'culture',name:'苗绣与银饰手作体验',city:'黔东南',region:'贵州',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'手作体验'},
+{kind:'site',name:'鼓浪屿',city:'厦门',region:'福建',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'site',name:'福建土楼',city:'永定／南京',region:'福建',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'闽式茶艺与乌龙茶品鉴',city:'安溪',region:'福建',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'茶文化'},
+{kind:'site',name:'日月潭',city:'南投',region:'台湾',geo:'taiwan',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然风光'},
+{kind:'site',name:'台北故宫博物院',city:'台北',region:'台湾',geo:'taiwan',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'博物馆'},
+{kind:'culture',name:'台湾夜市美食之旅',city:'台北／台南',region:'台湾',geo:'taiwan',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'饮食文化'},
+{kind:'culture',name:'台湾茶园与品茶体验',city:'坪林',region:'台湾',geo:'taiwan',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'茶文化'},
+{kind:'site',name:'太平山顶与维多利亚港景观',city:'香港',region:'香港',geo:'hkmo',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'城市全景'},
+{kind:'site',name:'香港地质公园',city:'西贡',region:'香港',geo:'hkmo',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'地质景观'},
+{kind:'culture',name:'港式点心与饮茶体验',city:'香港',region:'香港',geo:'hkmo',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'饮食文化'},
+{kind:'culture',name:'粤剧或舞狮表演',city:'香港',region:'香港',geo:'hkmo',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统表演艺术'},
+{kind:'site',name:'澳门历史城区',city:'澳门',region:'澳门',geo:'hkmo',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'澳门土生葡菜与葡式烘焙体验',city:'澳门',region:'澳门',geo:'hkmo',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'饮食传统'},
+{kind:'culture',name:'澳门舞龙舞狮与庙宇文化',city:'澳门',region:'澳门',geo:'hkmo',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'活态文化'},
+{kind:'site',name:'南京明孝陵',city:'南京',region:'江苏',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'昆曲欣赏',city:'苏州',region:'江苏',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统表演艺术'},
+{kind:'site',name:'苏州古典园林',city:'苏州',region:'江苏',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'南京云锦织造技艺展示',city:'南京',region:'江苏',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'传统工艺'},
+{kind:'site',name:'武夷山',city:'南平',region:'福建',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'武夷岩茶品鉴',city:'武夷山',region:'福建',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'茶文化'},
+{kind:'site',name:'海南热带植物园与雨林景观',city:'儋州／保亭',region:'海南',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'自然风光'},
+{kind:'culture',name:'黎族、苗族纺织与手工艺体验',city:'保亭',region:'海南',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'民族手工艺'},
+{kind:'site',name:'景迈山古茶林',city:'普洱',region:'云南',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'普洱茶品鉴与制茶体验',city:'普洱',region:'云南',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'茶文化'},
+{kind:'site',name:'承德避暑山庄',city:'承德',region:'河北',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'皇家文化遗产'},
+{kind:'culture',name:'河北皮影戏与地方戏曲',city:'唐山／石家庄',region:'河北',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'民俗表演'},
+{kind:'site',name:'五大连池火山地貌',city:'黑河',region:'黑龙江',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'地质景观'},
+{kind:'culture',name:'东北秧歌体验',city:'哈尔滨',region:'黑龙江',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'民间舞蹈'},
+{kind:'site',name:'长白山与天池',city:'延边／白山',region:'吉林',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'山地自然景观'},
+{kind:'culture',name:'延边朝鲜族美食与民俗文化',city:'延边',region:'吉林',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'地方文化'},
+{kind:'site',name:'太阳岛与中央大街',city:'哈尔滨',region:'黑龙江',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'城市与历史文化'},
+{kind:'culture',name:'哈尔滨冰雪大世界与冰雪节体验',city:'哈尔滨',region:'黑龙江',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'季节性节庆'},
+{kind:'site',name:'武当山',city:'十堰',region:'湖北',geo:'mainland',detail:'可游览代表性自然景观、历史遗迹或特色建筑，建议出行前确认开放时间、预约要求及交通安排。',tag:'世界遗产'},
+{kind:'culture',name:'武当太极入门体验',city:'十堰',region:'湖北',geo:'mainland',detail:'可体验当地传统技艺、表演艺术或饮食文化，具体活动场次与体验项目以当地实际安排为准。',tag:'武术'}
+];
+const foodItems=[
+{kind:'food',name:'成都｜川味火锅',city:'成都',region:'四川',geo:'mainland',tag:'火锅',detail:'麻辣牛油锅底、毛肚、黄喉与鸭肠，是体验川味火锅的经典选择。'},
+{kind:'food',name:'重庆｜重庆老火锅',city:'重庆',region:'重庆',geo:'mainland',tag:'火锅',detail:'牛油锅底与九宫格涮煮，推荐毛肚、鸭肠、黄喉等经典菜品。'},
+{kind:'food',name:'潮汕｜牛肉火锅',city:'汕头／潮州',region:'广东',geo:'mainland',tag:'火锅',detail:'以现切牛肉、吊龙、匙柄和牛骨清汤见长。'},
+{kind:'food',name:'贵阳｜酸汤火锅',city:'贵阳',region:'贵州',geo:'mainland',tag:'火锅',detail:'酸鲜开胃的贵州红酸汤或白酸汤，常搭配鱼、牛肉和时蔬。'},
+{kind:'food',name:'北京｜铜锅涮肉',city:'北京',region:'北京',geo:'mainland',tag:'火锅',detail:'传统炭火铜锅、清汤锅底，搭配鲜切羊肉和麻酱调料。'},
+{kind:'food',name:'哈尔滨｜东北烧烤',city:'哈尔滨',region:'黑龙江',geo:'mainland',tag:'烧烤',detail:'东北烧烤常见烤肉串、烤鸡架、烤实蛋和特色拌菜。'},
+{kind:'food',name:'新疆｜新疆烤肉',city:'乌鲁木齐',region:'新疆',geo:'mainland',tag:'烧烤',detail:'孜然羊肉串、烤包子与馕坑肉，风味浓郁。'},
+{kind:'food',name:'西安｜陕西面食',city:'西安',region:'陕西',geo:'mainland',tag:'面食',detail:'油泼面、 biangbiang 面、臊子面等地方风味。'},
+{kind:'food',name:'兰州｜牛肉面',city:'兰州',region:'甘肃',geo:'mainland',tag:'面食',detail:'一清二白三红四绿五黄的兰州牛肉面。'},
+{kind:'food',name:'武汉｜热干面与过早',city:'武汉',region:'湖北',geo:'mainland',tag:'地方小吃',detail:'热干面、三鲜豆皮、糊汤粉等武汉早餐代表。'},
+{kind:'food',name:'长沙｜湘味小吃',city:'长沙',region:'湖南',geo:'mainland',tag:'地方小吃',detail:'臭豆腐、糖油粑粑、口味虾等长沙风味。'},
+{kind:'food',name:'广州｜广式早茶',city:'广州',region:'广东',geo:'mainland',tag:'早茶',detail:'虾饺、烧卖、叉烧包、凤爪等经典茶点。'},
+{kind:'food',name:'顺德｜粤式美食',city:'佛山顺德',region:'广东',geo:'mainland',tag:'地方小吃',detail:'双皮奶、鱼生、煎酿三宝和顺德菜。'},
+{kind:'food',name:'青岛｜海鲜美食',city:'青岛',region:'山东',geo:'mainland',tag:'海鲜',detail:'蛤蜊、海肠、鲅鱼水饺等时令海鲜风味。'},
+{kind:'food',name:'厦门｜闽南小吃',city:'厦门',region:'福建',geo:'mainland',tag:'地方小吃',detail:'沙茶面、海蛎煎、土笋冻等闽南特色。'},
+{kind:'food',name:'苏州｜苏式糕点',city:'苏州',region:'江苏',geo:'mainland',tag:'甜品糕点',detail:'苏式月饼、梅花糕、桂花糖藕等江南甜食。'},
+{kind:'food',name:'新疆｜新疆烧烤',city:'乌鲁木齐／喀什／和田',region:'新疆',geo:'mainland',tag:'烧烤',subtag:'新疆烧烤',detail:'大串羊肉、馕坑肉、烤包子与烤馕，常以孜然、辣椒等调味。'},
+{kind:'food',name:'东北｜东北烧烤',city:'沈阳／长春／哈尔滨',region:'东北三省',geo:'mainland',tag:'烧烤',subtag:'东北烧烤',detail:'炭火烤串、烤鸡架、烤实蛋、烤冷面及丰富拌菜，地域风格多样。'},
+{kind:'food',name:'山东淄博｜淄博烧烤',city:'淄博',region:'山东',geo:'mainland',tag:'烧烤',subtag:'淄博烧烤',detail:'小炉、小饼、小葱是标志性吃法，常将烤肉串卷入小饼。'},
+{kind:'food',name:'辽宁锦州｜锦州烧烤',city:'锦州',region:'辽宁',geo:'mainland',tag:'烧烤',subtag:'锦州烧烤',detail:'烤串品类丰富，常见烤鸡手、烤海鲜及特色调味。'},
+{kind:'food',name:'辽宁丹东｜丹东烧烤',city:'丹东',region:'辽宁',geo:'mainland',tag:'烧烤',subtag:'丹东烧烤',detail:'兼有肉类与海鲜烧烤风味，可搭配当地黄蚬子等时令食材。'},
+{kind:'food',name:'黑龙江鹤岗｜鹤岗烧烤',city:'鹤岗',region:'黑龙江',geo:'mainland',tag:'烧烤',subtag:'鹤岗烧烤',detail:'东北炭火烤串风格，适合探索当地夜市与烧烤店。'},
+{kind:'food',name:'江苏徐州｜徐州烧烤',city:'徐州',region:'江苏',geo:'mainland',tag:'烧烤',subtag:'徐州烧烤',detail:'烤串常搭配当地特色辣汤、把子肉等徐州风味。'},
+{kind:'food',name:'山东临沂｜临沂烧烤',city:'临沂',region:'山东',geo:'mainland',tag:'烧烤',subtag:'临沂烧烤',detail:'鲁南烧烤风味，常见羊肉串、烤全羊及各类炭火烤物。'},
+{kind:'food',name:'四川乐山｜乐山烧烤',city:'乐山',region:'四川',geo:'mainland',tag:'烧烤',subtag:'乐山烧烤',detail:'麻辣鲜香，常与钵钵鸡、甜皮鸭、跷脚牛肉等乐山美食一起体验。'},
+{kind:'food',name:'四川宜宾｜宜宾把把烧',city:'宜宾',region:'四川',geo:'mainland',tag:'烧烤',subtag:'宜宾把把烧',detail:'小串现烤、香辣入味，常见牛肉、五花肉及特色内脏部位。'},
+{kind:'food',name:'四川西昌｜西昌火盆烧烤',city:'西昌',region:'四川',geo:'mainland',tag:'烧烤',subtag:'西昌火盆烧烤',detail:'围炉火盆烧烤，常搭配彝族风味食材与特色蘸料。'},
+{kind:'food',name:'广东湛江｜湛江烧烤',city:'湛江',region:'广东',geo:'mainland',tag:'烧烤',subtag:'湛江烧烤',detail:'海鲜烧烤特色突出，生蚝、虾类及本地海产常见。'},
+{kind:'food',name:'广西柳州｜柳州烧烤',city:'柳州',region:'广西',geo:'mainland',tag:'烧烤',subtag:'柳州烧烤',detail:'地方食材与酸辣风味鲜明，可搭配螺蛳粉等柳州小吃。'},
+{kind:'food',name:'四川成都｜串串香',city:'成都',region:'四川',geo:'mainland',tag:'火锅',detail:'竹签串起荤素食材，在麻辣汤底中涮煮，是成都代表性街头美食。'},
+{kind:'food',name:'重庆｜洞子火锅',city:'重庆',region:'重庆',geo:'mainland',tag:'火锅',detail:'传统重庆火锅风味，牛油锅底、毛肚鸭肠与老火锅氛围。'},
+{kind:'food',name:'云南｜菌菇火锅',city:'昆明／丽江',region:'云南',geo:'mainland',tag:'火锅',detail:'以野生或人工栽培食用菌为主，适合应季品尝并选择正规餐饮场所。'},
+{kind:'food',name:'贵州凯里｜酸汤鱼',city:'凯里',region:'贵州',geo:'mainland',tag:'地方小吃',detail:'以发酵酸汤烹煮鱼类，酸鲜开胃，是黔东南代表风味。'},
+{kind:'food',name:'广西柳州｜螺蛳粉',city:'柳州',region:'广西',geo:'mainland',tag:'地方小吃',detail:'米粉配酸笋、木耳、腐竹、花生与鲜辣汤底。'},
+{kind:'food',name:'甘肃天水｜天水麻辣烫',city:'天水',region:'甘肃',geo:'mainland',tag:'地方小吃',detail:'麻辣鲜香，常搭配手擀粉、宽粉及当地特色食材。'},
+{kind:'food',name:'河南开封｜灌汤包与桶子鸡',city:'开封',region:'河南',geo:'mainland',tag:'地方小吃',detail:'开封传统风味小吃，适合搭配夜市与古城街区游览。'},
+{kind:'food',name:'福建福州｜鱼丸与肉燕',city:'福州',region:'福建',geo:'mainland',tag:'地方小吃',detail:'鱼丸弹嫩、肉燕皮薄馅鲜，是福州经典小吃。'},
+{kind:'food',name:'云南大理｜乳扇与饵块',city:'大理',region:'云南',geo:'mainland',tag:'地方小吃',detail:'乳扇可烤制或油炸，饵块可煎、烤或炒制。'},
+{kind:'food',name:'海南｜文昌鸡与清补凉',city:'文昌／海口',region:'海南',geo:'mainland',tag:'地方小吃',detail:'文昌鸡皮爽肉嫩，清补凉是海南常见消暑甜品。'}
+];
+const localGuide={
+'北京':{foods:['北京烤鸭','炸酱面','豆汁儿配焦圈'],sites:['故宫博物院','天坛公园','颐和园','慕田峪长城']},
+'天津':{foods:['狗不理包子','煎饼馃子','耳朵眼炸糕'],sites:['天津古文化街','五大道','天津之眼']},
+'河北':{foods:['驴肉火烧','保定白肉罩火烧','承德平泉羊汤'],sites:['山海关','承德避暑山庄','白洋淀','正定古城']},
+'山西':{foods:['刀削面','平遥牛肉','莜面栲栳栳'],sites:['平遥古城','云冈石窟','五台山','壶口瀑布（山西段）']},
+'内蒙古':{foods:['手把肉','烤羊腿','奶茶与奶制品'],sites:['呼伦贝尔草原','响沙湾','额济纳胡杨林','阿尔山国家森林公园']},
+'辽宁':{foods:['锅包肉','老边饺子','海鲜焖子'],sites:['沈阳故宫','大连金石滩','千山','本溪水洞']},
+'吉林':{foods:['延吉冷面','人参鸡汤','锅包肉'],sites:['长白山','伪满皇宫博物院','净月潭','高句丽古迹']},
+'黑龙江':{foods:['锅包肉','哈尔滨红肠','铁锅炖'],sites:['哈尔滨中央大街','冰雪大世界（冬季）','五大连池','镜泊湖']},
+'上海':{foods:['生煎馒头','小笼包','葱油拌面'],sites:['外滩','豫园','上海博物馆','朱家角古镇']},
+'江苏':{foods:['南京盐水鸭','扬州炒饭','苏式汤面'],sites:['苏州园林','南京中山陵','瘦西湖','周庄古镇']},
+'浙江':{foods:['东坡肉','龙井虾仁','宁波汤圆'],sites:['杭州西湖','乌镇','普陀山','雁荡山']},
+'安徽':{foods:['臭鳜鱼','毛豆腐','黄山烧饼'],sites:['黄山风景区','宏村','西递','九华山']},
+'福建':{foods:['佛跳墙','沙茶面','闽南姜母鸭'],sites:['鼓浪屿','武夷山','福建土楼','三坊七巷']},
+'江西':{foods:['南昌拌粉','瓦罐汤','景德镇冷粉'],sites:['庐山','婺源篁岭','景德镇古窑民俗博览区','龙虎山']},
+'山东':{foods:['九转大肠','把子肉','周村烧饼'],sites:['泰山','曲阜三孔','青岛栈桥','蓬莱阁']},
+'河南':{foods:['烩面','胡辣汤','道口烧鸡'],sites:['龙门石窟','少林寺','云台山','开封清明上河园']},
+'湖北':{foods:['热干面','三鲜豆皮','排骨藕汤'],sites:['黄鹤楼','武当山','三峡大坝','恩施大峡谷']},
+'湖南':{foods:['剁椒鱼头','臭豆腐','湘西腊肉'],sites:['张家界国家森林公园','岳阳楼','凤凰古城','南岳衡山']},
+'广东':{foods:['广式烧鹅','肠粉','潮汕牛肉火锅'],sites:['广州陈家祠','丹霞山','开平碉楼','深圳世界之窗']},
+'广西':{foods:['桂林米粉','螺蛳粉','荔浦芋扣肉'],sites:['漓江','阳朔西街','龙脊梯田','德天瀑布']},
+'海南':{foods:['文昌鸡','海南粉','和乐蟹'],sites:['蜈支洲岛','南山文化旅游区','呀诺达雨林','分界洲岛']},
+'重庆':{foods:['重庆小面','重庆火锅','酸辣粉'],sites:['洪崖洞','大足石刻','武隆喀斯特','磁器口古镇']},
+'四川':{foods:['担担面','麻婆豆腐','钟水饺'],sites:['九寨沟','峨眉山','都江堰','乐山大佛']},
+'贵州':{foods:['酸汤鱼','丝娃娃','肠旺面'],sites:['黄果树瀑布','荔波小七孔','西江千户苗寨','梵净山']},
+'云南':{foods:['过桥米线','汽锅鸡','鲜花饼'],sites:['丽江古城','大理古城','石林','玉龙雪山']},
+'西藏':{foods:['藏面','酥油茶','牦牛肉'],sites:['布达拉宫','大昭寺','纳木错','珠穆朗玛国家公园']},
+'陕西':{foods:['肉夹馍','羊肉泡馍','凉皮'],sites:['秦始皇帝陵博物院','大雁塔','华山','陕西历史博物馆']},
+'甘肃':{foods:['兰州牛肉面','手抓羊肉','酿皮子'],sites:['莫高窟','鸣沙山月牙泉','嘉峪关关城','张掖七彩丹霞']},
+'青海':{foods:['手抓羊肉','青海酸奶','尕面片'],sites:['青海湖','茶卡盐湖','塔尔寺','翡翠湖']},
+'宁夏':{foods:['手抓羊肉','羊杂碎','宁夏烩小吃'],sites:['沙坡头','西夏陵','镇北堡西部影城','贺兰山岩画']},
+'新疆':{foods:['大盘鸡','烤包子','手抓饭'],sites:['天山天池','喀纳斯','赛里木湖','吐鲁番葡萄沟']},
+'香港':{foods:['港式蛋挞','云吞面','菠萝油'],sites:['维多利亚港','太平山顶','香港故宫文化博物馆','大屿山天坛大佛']},
+'澳门':{foods:['葡式蛋挞','猪扒包','水蟹粥'],sites:['大三巴牌坊','澳门旅游塔','路环村','官也街']},
+'台湾':{foods:['牛肉面','蚵仔煎','卤肉饭'],sites:['台北故宫博物院','日月潭','阿里山','太鲁阁国家公园（开放情况需确认）']}
+};
+const countyGuide={
+'杭州市|西湖区':{foods:['片儿川','葱包桧'],sites:['西湖（断桥、苏堤一带）','西溪国家湿地公园']},
+'杭州市|上城区':{foods:['葱包桧','定胜糕'],sites:['清河坊历史街区','南宋德寿宫遗址博物馆']},
+'杭州市|拱墅区':{foods:['杭州小笼包','知味观猫耳朵'],sites:['京杭大运河杭州段','桥西历史文化街区']},
+'杭州市|滨江区':{foods:['杭州片儿川','龙井虾仁'],sites:['钱塘江沿江步道','白马湖公园']},
+'杭州市|萧山区':{foods:['萧山萝卜干','湘湖鱼头'],sites:['湘湖旅游度假区','跨湖桥遗址博物馆']},
+'杭州市|余杭区':{foods:['径山茶宴','余杭粽子'],sites:['径山寺','良渚古城遗址公园']},
+'杭州市|临平区':{foods:['塘栖枇杷（时令）','粢毛肉圆'],sites:['塘栖古镇','超山风景名胜区']},
+'杭州市|富阳区':{foods:['富阳东坞山豆腐皮','富春江鲥鱼（时令）'],sites:['富春桃源','龙门古镇']},
+'杭州市|临安区':{foods:['天目笋干','昌化山核桃'],sites:['天目山','大明山景区']},
+'成都市|锦江区':{foods:['钟水饺','夫妻肺片'],sites:['春熙路—太古里','合江亭与锦江绿道']},
+'成都市|青羊区':{foods:['担担面','赖汤圆'],sites:['杜甫草堂','宽窄巷子']},
+'成都市|武侯区':{foods:['川北凉粉','甜水面'],sites:['武侯祠','锦里古街']},
+'成都市|成华区':{foods:['冒菜','蛋烘糕'],sites:['成都大熊猫繁育研究基地','东郊记忆']},
+'成都市|都江堰市':{foods:['尤兔头','葱葱卷'],sites:['都江堰水利工程','青城山']},
+'重庆市|渝中区':{foods:['重庆老火锅','重庆小面'],sites:['洪崖洞','解放碑—十八梯']},
+'重庆市|沙坪坝区':{foods:['陈麻花','重庆小面'],sites:['磁器口古镇','歌乐山国家森林公园']},
+'西安市|雁塔区':{foods:['肉夹馍','凉皮'],sites:['大雁塔','陕西历史博物馆']},
+'西安市|碑林区':{foods:['biangbiang面','甑糕'],sites:['西安碑林博物馆','书院门文化街区']}
+};
+const cityGuide={
+'杭州市':{foods:['片儿川','葱包桧'],sites:['西湖','西溪国家湿地公园']},
+'成都市':{foods:['担担面','钟水饺'],sites:['武侯祠','杜甫草堂']},
+'重庆市':{foods:['重庆火锅','重庆小面'],sites:['洪崖洞','磁器口古镇']},
+'西安市':{foods:['肉夹馍','羊肉泡馍'],sites:['秦始皇帝陵博物院','大雁塔']},
+'南京市':{foods:['盐水鸭','鸭血粉丝汤'],sites:['夫子庙—秦淮风光带','南京博物院']},
+'苏州市':{foods:['苏式汤面','松鼠鳜鱼'],sites:['拙政园','平江路历史街区']},
+'武汉市':{foods:['热干面','三鲜豆皮'],sites:['黄鹤楼','东湖风景区']},
+'长沙市':{foods:['臭豆腐','糖油粑粑'],sites:['岳麓山','橘子洲']},
+'广州市':{foods:['肠粉','广式烧鹅'],sites:['陈家祠','沙面历史文化街区']},
+'青岛市':{foods:['鲅鱼水饺','海鲜蛤蜊'],sites:['栈桥','八大关']},
+'沈阳市':{foods:['老边饺子','鸡架','东北烧烤'],sites:['沈阳故宫','张氏帅府']},
+'长春市':{foods:['雪衣豆沙','锅包肉','东北烧烤'],sites:['伪满皇宫博物院','净月潭']},
+'哈尔滨市':{foods:['锅包肉','红肠','得莫利炖鱼'],sites:['中央大街','太阳岛']},
+'呼和浩特市':{foods:['烧麦','手把肉','奶茶'],sites:['大召寺','内蒙古博物院']},
+'石家庄市':{foods:['安徽板面（石家庄风味）','缸炉烧饼','金凤扒鸡'],sites:['正定古城','河北博物院']},
+'太原市':{foods:['刀削面','头脑','过油肉'],sites:['晋祠','山西博物院']},
+'合肥市':{foods:['庐州烤鸭','三河米饺','臭鳜鱼'],sites:['包公园','三河古镇']},
+'福州市':{foods:['鱼丸','肉燕','佛跳墙'],sites:['三坊七巷','烟台山历史风貌区']},
+'南昌市':{foods:['南昌拌粉','瓦罐汤','白糖糕'],sites:['滕王阁','万寿宫历史文化街区']},
+'济南市':{foods:['把子肉','甜沫','油旋'],sites:['趵突泉','大明湖']},
+'郑州市':{foods:['烩面','胡辣汤','焖饼'],sites:['河南博物院','少林寺（登封）']},
+'长沙市':{foods:['臭豆腐','糖油粑粑','口味虾'],sites:['岳麓山','橘子洲']},
+'南宁市':{foods:['老友粉','柠檬鸭','粉饺'],sites:['青秀山','三街两巷']},
+'海口市':{foods:['海南粉','清补凉','糟粕醋'],sites:['骑楼老街','五公祠']},
+'贵阳市':{foods:['肠旺面','丝娃娃','酸汤鱼'],sites:['甲秀楼','青岩古镇']},
+'昆明市':{foods:['小锅米线','汽锅鸡','鲜花饼'],sites:['滇池','云南民族村']},
+'拉萨市':{foods:['藏面','甜茶','牦牛肉'],sites:['布达拉宫','大昭寺']},
+'兰州市':{foods:['兰州牛肉面','酿皮','灰豆子'],sites:['黄河风情线','甘肃省博物馆']},
+'西宁市':{foods:['手抓羊肉','酿皮','青海酸奶'],sites:['塔尔寺','东关清真大寺']},
+'银川市':{foods:['手抓羊肉','羊杂碎','八宝茶'],sites:['西夏陵','贺兰山岩画']},
+'乌鲁木齐市':{foods:['大盘鸡','烤包子','手抓饭'],sites:['新疆国际大巴扎','红山公园']},
+'宁波市':{foods:['宁波汤圆','雪菜大黄鱼','红膏炝蟹'],sites:['天一阁','老外滩']},
+'温州市':{foods:['鱼丸','糯米饭','灯盏糕'],sites:['江心屿','五马历史文化街区']},
+'扬州市':{foods:['扬州炒饭','狮子头','烫干丝'],sites:['瘦西湖','个园']},
+'无锡市':{foods:['酱排骨','小笼包','玉兰饼'],sites:['鼋头渚','惠山古镇']},
+'泉州市':{foods:['面线糊','姜母鸭','土笋冻'],sites:['开元寺','蟳埔民俗文化村']},
+'汕头市':{foods:['牛肉火锅','蚝烙','粿条汤'],sites:['小公园开埠区','汕头老妈宫']},
+'潮州市':{foods:['潮州牛肉丸','粿条','腐乳饼'],sites:['广济桥','牌坊街']},
+'烟台市':{foods:['焖子','鲅鱼水饺','海肠捞饭'],sites:['蓬莱阁','养马岛']},
+'淄博市':{foods:['淄博烧烤','博山豆腐箱','周村烧饼'],sites:['周村古商城','齐文化博物院']},
+'天水市':{foods:['天水麻辣烫','呱呱','浆水面'],sites:['麦积山石窟','伏羲庙']},
+'北京市':{foods:['北京烤鸭','炸酱面','卤煮火烧','豆汁儿配焦圈'],sites:['故宫博物院','天坛公园']},
+'上海市':{foods:['生煎馒头','小笼包','葱油拌面','本帮红烧肉'],sites:['外滩','豫园']},
+'天津市':{foods:['煎饼馃子','锅巴菜','耳朵眼炸糕','熟梨糕'],sites:['古文化街','五大道']},
+'大连市':{foods:['海鲜焖子','鲅鱼饺子','咸鱼饼子','海菜包子'],sites:['星海广场','金石滩']},
+'鞍山市':{foods:['南果梨','岫岩羊汤','海城馅饼'],sites:['千山风景区','玉佛苑']},
+'延边朝鲜族自治州':{foods:['延吉冷面','米肠','石锅拌饭','辣白菜'],sites:['中国朝鲜族民俗园','帽儿山国家森林公园']},
+'齐齐哈尔市':{foods:['烤肉','杀猪菜','锅包肉','大鹅炖土豆'],sites:['扎龙自然保护区','龙沙公园']},
+'呼伦贝尔市':{foods:['手把肉','烤羊排','奶茶','布里亚特包子'],sites:['呼伦贝尔大草原','满洲里国门景区']},
+'唐山市':{foods:['棋子烧饼','蜂蜜麻糖','饹馇','万里香烧鸡'],sites:['清东陵','唐山南湖']},
+'保定市':{foods:['驴肉火烧','白肉罩火烧','牛肉罩饼','槐茂酱菜'],sites:['直隶总督署','白洋淀']},
+'大同市':{foods:['刀削面','羊杂','黄糕','烧麦'],sites:['云冈石窟','华严寺']},
+'晋中市':{foods:['平遥牛肉','碗托','太谷饼','莜面栲栳栳'],sites:['平遥古城','乔家大院']},
+'洛阳市':{foods:['洛阳水席','牛肉汤','浆面条','牡丹燕菜'],sites:['龙门石窟','洛邑古城']},
+'开封市':{foods:['灌汤包','桶子鸡','鲤鱼焙面','杏仁茶'],sites:['清明上河园','开封府']},
+'南阳市':{foods:['方城烩面','新野板面','镇平烧鸡'],sites:['南阳府衙','医圣祠']},
+'襄阳市':{foods:['襄阳牛肉面','黄酒','宜城大虾'],sites:['古隆中','襄阳古城']},
+'宜昌市':{foods:['肥鱼火锅','萝卜饺子','红油小面','峡口明珠汤'],sites:['三峡大坝','三峡人家']},
+'恩施土家族苗族自治州':{foods:['合渣','土家腊肉','炕土豆','油茶汤'],sites:['恩施大峡谷','土司城']},
+'株洲市':{foods:['攸县香干','醴陵小炒肉','炎陵黄桃（时令）'],sites:['炎帝陵','神农城']},
+'衡阳市':{foods:['衡阳鱼粉','常宁凉粉','衡东土菜'],sites:['南岳衡山','石鼓书院']},
+'佛山市':{foods:['顺德鱼生','双皮奶','陈村粉','伦教糕'],sites:['清晖园','南风古灶']},
+'深圳市':{foods:['客家酿豆腐','光明乳鸽','沙井蚝','肠粉'],sites:['甘坑古镇','大鹏所城']},
+'珠海市':{foods:['横琴蚝','白蕉海鲈','斗门重壳蟹（时令）'],sites:['圆明新园','情侣路']},
+'韶关市':{foods:['南雄酸笋鸭','客家酿豆腐','翁源三华李（时令）'],sites:['丹霞山','南华寺']},
+'桂林市':{foods:['桂林米粉','荔浦芋扣肉','恭城油茶','啤酒鱼'],sites:['漓江','象鼻山']},
+'柳州市':{foods:['螺蛳粉','融安滤粉','三江油茶','酸笋炒螺'],sites:['程阳八寨','柳州工业博物馆']},
+'北海市':{foods:['虾饼','蟹仔粉','沙蟹汁','海鲜粥'],sites:['涠洲岛','北海老街']},
+'三亚市':{foods:['海南椰子鸡','清补凉','抱罗粉','海鲜糟粕醋'],sites:['蜈支洲岛','南山文化旅游区']},
+'泉州市':{foods:['面线糊','姜母鸭','土笋冻','润饼菜'],sites:['开元寺','蟳埔民俗文化村']},
+'厦门市':{foods:['沙茶面','海蛎煎','花生汤','烧肉粽'],sites:['鼓浪屿','沙坡尾']},
+'莆田市':{foods:['莆田卤面','兴化米粉','炝肉','焖豆腐'],sites:['湄洲岛','南少林寺遗址']},
+'漳州市':{foods:['卤面','四果汤','蚵仔煎','手抓面'],sites:['东山岛','南靖土楼']},
+'景德镇市':{foods:['冷粉','饺子粑','碱水粑','瓷泥煨鸡'],sites:['陶阳里历史文化街区','古窑民俗博览区']},
+'赣州市':{foods:['赣南小炒鱼','三杯鸡','艾米果','客家酿豆腐'],sites:['江南宋城','通天岩']},
+'泰安市':{foods:['泰山火烧','煎饼卷大葱','豆腐宴'],sites:['泰山','岱庙']},
+'潍坊市':{foods:['朝天锅','肉火烧','潍县萝卜','和乐'],sites:['十笏园','青州古城']},
+'临沂市':{foods:['糁（sa）汤','煎饼','炒鸡','沂蒙光棍鸡'],sites:['沂蒙山','王羲之故居']},
+'威海市':{foods:['鲅鱼水饺','海菜包子','乳山生蚝','海鲜锅'],sites:['刘公岛','火炬八街']},
+'日照市':{foods:['海沙子面','鲅鱼水饺','海鲜大咖'],sites:['万平口','东夷小镇']},
+'成都市':{foods:['担担面','钟水饺','夫妻肺片','甜水面'],sites:['武侯祠','杜甫草堂']},
+'自贡市':{foods:['冷吃兔','水煮牛肉','鲜锅兔','自贡盐帮菜'],sites:['自贡恐龙博物馆','燊海井']},
+'乐山市':{foods:['跷脚牛肉','钵钵鸡','甜皮鸭','豆腐脑'],sites:['乐山大佛','峨眉山']},
+'宜宾市':{foods:['燃面','把把烧','李庄白肉','芽菜'],sites:['蜀南竹海','李庄古镇']},
+'南充市':{foods:['川北凉粉','顺庆羊肉粉','锅盔灌凉粉'],sites:['阆中古城','朱德故里']},
+'遵义市':{foods:['羊肉粉','豆花面','鸡蛋糕','辣子鸡'],sites:['遵义会议会址','赤水丹霞']},
+'大理白族自治州':{foods:['乳扇','饵块','酸辣鱼','喜洲粑粑'],sites:['大理古城','洱海']},
+'丽江市':{foods:['腊排骨火锅','鸡豆凉粉','纳西烤肉','丽江粑粑'],sites:['丽江古城','玉龙雪山']},
+'曲靖市':{foods:['蒸饵丝','宣威火腿','沾益辣子鸡'],sites:['会泽古城','珠江源']},
+'西安市':{foods:['肉夹馍','羊肉泡馍','凉皮','葫芦头'],sites:['秦始皇帝陵博物院','大雁塔']},
+'宝鸡市':{foods:['岐山臊子面','擀面皮','豆花泡馍','西府肉臊子'],sites:['法门寺','太白山']},
+'榆林市':{foods:['羊杂碎','拼三鲜','榆林豆腐','横山羊肉'],sites:['镇北台','红石峡']},
+'敦煌市':{foods:['驴肉黄面','胡羊焖饼','杏皮水','泡儿油糕'],sites:['莫高窟','鸣沙山月牙泉']},
+'喀什地区':{foods:['抓饭','烤包子','缸子肉','鸽子汤'],sites:['喀什古城','香妃园']},
+'伊犁哈萨克自治州':{foods:['手抓羊肉','烤包子','纳仁','马肠子'],sites:['那拉提草原','赛里木湖']},
+'拉萨市':{foods:['藏面','甜茶','牦牛肉','糌粑'],sites:['布达拉宫','大昭寺']},
+'林芝市':{foods:['石锅鸡','藏香猪','松茸料理（时令）'],sites:['巴松措','雅鲁藏布大峡谷']}
+};
+function localInfoFor(win){
+ // Recommendation sources are deliberately capped at county/district and city.
+ // Never fall back to provincial cuisine or attractions.
+ const chain=[];let cur=win,guard=0;
+ while(cur&&guard++<8){chain.unshift(cur);cur=cur.parentCode?byCode.get(String(cur.parentCode)):null}
+ const cityNode=chain.find(x=>x.level===1)||null;
+ const countyNode=chain.find(x=>x.level===2)||null;
+ const city=nm(cityNode)||'';
+ const county=nm(countyNode)||'';
+ const selected=nm(win);
+ let guide=null,scope='',sourceName='';
+ // City draw: city guide only. County/township draws: county guide only; no city/province fallback.
+ if(win.level===1){
+   guide=cityGuide[city];
+   if(guide){scope='市级推荐';sourceName=city}
+ }else{
+   if(countyNode){guide=countyGuide[city+'|'+county];if(guide){scope='区县级推荐';sourceName=county}}
+   // County/township draws never borrow city-level content: keep the match local.
+ }
+ const foods=guide&&Array.isArray(guide.foods)?guide.foods.filter(Boolean):[];
+ const sites=guide&&Array.isArray(guide.sites)?guide.sites.filter(Boolean):[];
+ return {city,county,selected,scope,sourceName,foods:foods.slice(0,4),sites:sites.slice(0,3),hasFoods:foods.length>0,hasSites:sites.length>0,complete:foods.length>0&&sites.length>0};
+}
+
+function nm(x){return x.fullName||x.name||''}
+function geo(x){let c=String(x.code||'').slice(0,2);return c==='71'?'taiwan':(c==='81'||c==='82'?'hkmo':'mainland')}
+function path(x){if(x.kind)return '中国 · '+x.region+' · '+x.city;let a=[x],p=x.parentCode,guard=0;while(p&&byCode.has(String(p))&&guard++<8){let q=byCode.get(String(p));a.unshift(q);p=q.parentCode}let n=a.map(nm).filter((v,i,z)=>i===0||v!==z[i-1]);return '中国 · '+n.join(' · ')}
+function filtered(){let mode=$('mode').value,g=$('geo').value;if(mode==='food')return foodItems.filter(x=>(g==='all'||x.geo===g)&&($('foodtype').value==='all'||x.tag===$('foodtype').value||x.subtag===$('foodtype').value||( $('foodtype').value==='烧烤'&&x.tag==='烧烤')));if(mode!=='admin')return travelItems.filter(x=>x.kind===mode&&(g==='all'||x.geo===g));let typ=$('type').value;return data.filter(x=>(String(x.level)===typ)&&(g==='all'||geo(x)===g))}
+function updatePool(){let base=filtered();pool=base.filter(x=>!($('avoid').checked&&history.some(h=>h.key===(x.code||x.name))));$('pool').textContent=pool.length.toLocaleString()+( $('mode').value==='admin'?' 个行政区':$('mode').value==='food'?' 个美食目的地':' 个旅行灵感')+' 可供抽取';$('spin').disabled=!pool.length||busy}
+function render(){let arr=tab==='history'?history:filtered().filter(x=>(tab==='all'||($('mode').value==='admin'?String(x.level)===tab:true))&&((nm(x)+' '+(x.pinyin||'')+' '+(x.code||'')+' '+(x.city||'')+' '+(x.region||'')+' '+(x.detail||'')+' '+path(x)).toLowerCase().includes($('search').value.trim().toLowerCase())));let pages=Math.max(1,Math.ceil(arr.length/PAGE));page=Math.min(page,pages-1);$('matches').textContent=arr.length.toLocaleString()+' 条结果';$('pageinfo').textContent=`第 ${page+1} / ${pages}`;$('prev').disabled=page===0;$('next').disabled=page>=pages-1;$('entries').innerHTML='';arr.slice(page*PAGE,(page+1)*PAGE).forEach(x=>{let d=document.createElement('div');d.className='entry';let b=document.createElement('b');b.textContent=x.name||nm(x);let s=document.createElement('small');s.textContent=x.kind?(x.kind==='site'?'旅游景点 · ':x.kind==='food'?'美食目的地 · ':'文化体验 · ')+x.tag+' · '+path(x):(x.level===1?'市级行政区 · ':x.level===2?'县区级行政区 · ':'乡镇级行政区 · ')+path(x);if(x.detail){let q=document.createElement('small');q.textContent=x.detail;d.append(b,s,q)}else d.append(b,s);$('entries').append(d)});if(!arr.length)$('entries').textContent='没有找到匹配结果。'}
+function renderHistory(){$('history').innerHTML='';if(!history.length){$('history').textContent='还没有抽取记录。';return}history.slice(0,20).forEach(x=>{let d=document.createElement('div');d.className='entry';let b=document.createElement('b');b.textContent=x.name;let s=document.createElement('small');s.textContent=x.path+(x.detail?' · '+x.detail:'');d.append(b,s);$('history').append(d)})}
+function renderRecommendations(win){const box=$('recommendations');box.innerHTML='';const title=document.createElement('h3');title.textContent=win.kind==='food'?'这趟可以去哪里吃？':'到这里可以吃什么、玩什么？';box.append(title);const grid=document.createElement('div');grid.className='local-grid';const makePanel=(heading,items)=>{const panel=document.createElement('section');panel.className='local-panel';const h=document.createElement('h3');h.textContent=heading;const ul=document.createElement('ul');items.forEach(name=>{const li=document.createElement('li');li.textContent=name;ul.append(li)});panel.append(h,ul);return panel};if(win.kind==='food'){grid.append(makePanel('🍲 推荐美食', [win.name+'（'+win.tag+'）',win.detail]));grid.append(makePanel('📍 推荐目的地', [win.city,win.region+'代表性美食地区']));box.append(grid);const note=document.createElement('div');note.className='local-note';note.textContent='美食目的地为风味灵感推荐，具体餐馆、营业时间及口味请出行前确认。';box.append(note);return;}if(win.kind){const nearby=travelItems.filter(x=>x.kind==='site'&&x.region===win.region).slice(0,2);grid.append(makePanel('📍 景点／体验', [win.name,...nearby.map(x=>x.name)]));grid.append(makePanel('🍜 当地美食', (localGuide[win.region]||{foods:['当地特色小吃','当地传统菜肴']}).foods.slice(0,2)));box.append(grid);return;}const info=localInfoFor(win);const levelLabel=info.scope?`${info.scope} · ${info.sourceName}`:'暂无市级或区县级资料';const foodItems=info.hasFoods?info.foods:['暂无已整理的区县专属美食资料'];const siteItems=info.hasSites?info.sites:['暂无已整理的区县专属景点资料'];grid.append(makePanel('🍜 当地美食推荐（'+levelLabel+'）',foodItems),makePanel('📍 当地景点推荐（'+levelLabel+'）',siteItems));box.append(grid);const note=document.createElement('div');note.className='local-note';note.textContent=`抽中行政区：${info.selected}。推荐来源：${levelLabel}。区县及乡镇抽取只使用所属区县专属资料；市级抽取只使用本市资料。不会用市级或省级内容冒充区县推荐。${(!info.hasFoods||!info.hasSites)?' 当前对应类别资料尚未补齐，需继续完善数据库。':''}`;box.append(note);
+ // Optional server-side, adcode-matched county recommendations. Only approved records replace the local sample display.
+ if(!win.kind&&win.code&&Number(win.level)>=2){const adcode=String(win.code).slice(0,6);fetch('/api/recommendations?adcode='+encodeURIComponent(adcode)).then(r=>r.ok?r.json():null).then(rec=>{if(!rec||!rec.approved)return;const current=$('recommendations');if(!current||!current.isConnected)return;const panels=current.querySelectorAll('.local-panel');if(panels.length<2)return;const renderList=(panel,items)=>{const ul=panel.querySelector('ul');if(!ul)return;ul.innerHTML='';items.forEach(item=>{const li=document.createElement('li');li.textContent=typeof item==='string'?item:(item.name||'');if(item&&typeof item==='object'&&item.source){const small=document.createElement('small');small.textContent=' · 来源：'+item.source;if(item.sourceUrl&&/^https:\/\//i.test(item.sourceUrl)){const a=document.createElement('a');a.href=item.sourceUrl;a.target='_blank';a.rel='noopener noreferrer';a.textContent='查看来源';a.style.marginLeft='6px';small.append(a)}li.append(small)}ul.append(li)})};const label='区县级推荐 · '+(rec.districtName||info.county||info.selected);panels[0].querySelector('h3').textContent='🍜 当地美食推荐（'+label+'）';panels[1].querySelector('h3').textContent='📍 当地景点推荐（'+label+'）';renderList(panels[0],rec.foods||[]);renderList(panels[1],rec.sites||[]);const n=current.querySelector('.local-note');if(n)n.textContent='已加载服务器审核的区县专属资料。资料核实时间：'+(rec.verifiedAt||'未注明')+'。'+(rec.verificationNote||'');}).catch(()=>{});}
+}
+function spin(){if(busy||!pool.length)return;busy=true;$('spin').disabled=true;$('spin').textContent='🌀 正在旋转…';$('result').hidden=true;let win=pool[Math.floor(Math.random()*pool.length)];let angle=Math.random()*360+360*7;$('wheel').style.transition='none';$('wheel').style.transform='rotate(0deg)';$('wheel').offsetWidth;$('wheel').style.transition='transform 5s cubic-bezier(.12,.72,.12,1)';$('wheel').style.transform=`rotate(${angle}deg)`;setTimeout(()=>{busy=false;chosen=win;$('spin').textContent='🎲 再抽一次';$('result').hidden=false;$('resultname').textContent=win.name||nm(win);$('resultpath').textContent=path(win)+(win.detail?' · '+win.detail:'');renderRecommendations(win);$('result').scrollIntoView({behavior:'smooth',block:'start'});history.unshift({key:win.code||win.name,code:win.code,name:win.name||nm(win),path:path(win),detail:win.detail||''});renderHistory();updatePool();render();$('wheelhint').textContent='抽取完成！再转一次，发现下一段旅程。'},5100)}
+async function load(){let body=null,last;for(const u of srcs){try{let r=await fetch(u);if(!r.ok)throw Error('HTTP '+r.status);body=await r.text();if(body.length<10000)throw Error('Dataset response was unexpectedly small');break}catch(e){last=e}}if(!body)throw last||Error('Could not fetch data');let all=body.split(/\r?\n/).filter(Boolean).map(s=>JSON.parse(s));byCode=new Map(all.map(x=>[String(x.code),x]));data=all.filter(x=>x.level===1||x.level===2||x.level===3);$('total').textContent=data.length.toLocaleString();$('counties').textContent=data.filter(x=>x.level===2).length.toLocaleString();$('towns').textContent=data.filter(x=>x.level===3).length.toLocaleString();$('status').textContent='行政区数据库加载成功 ✓';$('wheelhint').textContent='已准备就绪，点击按钮开始抽取';$('export').disabled=false;updatePool();render()}
+$('spin').onclick=spin;['type','geo','avoid','mode','foodtype'].forEach(id=>$(id).onchange=()=>{page=0;if(id==='mode'){let admin=$('mode').value==='admin',food=$('mode').value==='food';$('levelwrap').style.display=admin?'block':'none';$('foodtypewrap').style.display=food?'block':'none';$('listtitle').textContent=admin?'搜索行政区':food?'搜索美食目的地':'搜索旅行灵感';$('export').style.display=admin?'block':'none';$('exportnote').style.display=admin?'block':'none';$('exporttravel').style.display=admin?'none':'block';document.querySelectorAll('[data-tab=1],[data-tab=2],[data-tab=3]').forEach(b=>b.style.display=admin?'':'none');tab='all';document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t.dataset.tab==='all'))}updatePool();render()});$('search').oninput=()=>{page=0;render()};$('clear').onclick=()=>{$('search').value='';page=0;render()};$('prev').onclick=()=>{page--;render()};$('next').onclick=()=>{page++;render()};document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{tab=b.dataset.tab;page=0;document.querySelectorAll('[data-tab]').forEach(t=>t.classList.toggle('active',t===b));render()});
+$('clearhistory').onclick=()=>{history=[];renderHistory();updatePool();render()};$('copy').onclick=()=>{if(chosen)navigator.clipboard.writeText(path(chosen)).then(()=>$('copy').textContent='已复制 ✓').catch(()=>alert(path(chosen)))};$('map').onclick=()=>{if(chosen)window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(path(chosen)),'_blank','noopener')};
+function downloadCSV(rows,filename){let csv='\uFEFF'+rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');let blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(url),2000)}
+$('export').onclick=()=>{let rows=[['行政区划代码','名称','级别','上级代码','完整行政区划路径','拼音'],...filtered().map(x=>[x.code,nm(x),x.level,x.parentCode||'',path(x),x.pinyin||''])];downloadCSV(rows,'中国_全部行政区.csv')};
+$('exporttravel').onclick=()=>{let rows=[['类型','名称','城市','省份／地区','地区范围','类别','看点／体验内容'],...travelItems.concat(foodItems).map(x=>[x.kind==='site'?'旅游景点':x.kind==='food'?'美食目的地':'文化体验',x.name,x.city,x.region,x.geo,x.tag,x.detail])];downloadCSV(rows,'中国_景点与文化体验.csv')};
+load().catch(e=>{$('status').textContent='数据库暂不可用';$('wheelhint').textContent='无法加载在线数据，请检查网络连接后刷新页面。';$('entries').textContent='数据加载失败：'+e.message;$('spin').disabled=true});
+})();
+</script></body></html>
