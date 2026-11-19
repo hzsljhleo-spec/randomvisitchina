@@ -340,28 +340,80 @@ const cityGuide={
 '拉萨市':{foods:['藏面','甜茶','牦牛肉','糌粑'],sites:['布达拉宫','大昭寺']},
 '林芝市':{foods:['石锅鸡','藏香猪','松茸料理（时令）'],sites:['巴松措','雅鲁藏布大峡谷']}
 };
+
 function localInfoFor(win){
- // Recommendation sources are deliberately capped at county/district and city.
- // Never fall back to provincial cuisine or attractions.
- const chain=[];let cur=win,guard=0;
- while(cur&&guard++<8){chain.unshift(cur);cur=cur.parentCode?byCode.get(String(cur.parentCode)):null}
- const cityNode=chain.find(x=>x.level===1)||null;
- const countyNode=chain.find(x=>x.level===2)||null;
- const city=nm(cityNode)||'';
- const county=nm(countyNode)||'';
- const selected=nm(win);
- let guide=null,scope='',sourceName='';
- // City draw: city guide only. County/township draws: county guide only; no city/province fallback.
- if(win.level===1){
-   guide=cityGuide[city];
-   if(guide){scope='市级推荐';sourceName=city}
- }else{
-   if(countyNode){guide=countyGuide[city+'|'+county];if(guide){scope='区县级推荐';sourceName=county}}
-   // County/township draws never borrow city-level content: keep the match local.
- }
- const foods=guide&&Array.isArray(guide.foods)?guide.foods.filter(Boolean):[];
- const sites=guide&&Array.isArray(guide.sites)?guide.sites.filter(Boolean):[];
- return {city,county,selected,scope,sourceName,foods:foods.slice(0,4),sites:sites.slice(0,3),hasFoods:foods.length>0,hasSites:sites.length>0,complete:foods.length>0&&sites.length>0};
+  // Build the administrative hierarchy.
+  const chain=[];
+  let cur=win,guard=0;
+
+  while(cur&&guard++<8){
+    chain.unshift(cur);
+    cur=cur.parentCode
+      ? byCode.get(String(cur.parentCode))
+      : null;
+  }
+
+  const cityNode=chain.find(x=>x.level===1)||null;
+  const countyNode=chain.find(x=>x.level===2)||null;
+
+  const city=nm(cityNode)||'';
+  const county=nm(countyNode)||'';
+  const selected=nm(win);
+
+  let guide=null;
+  let scope='';
+  let sourceName='';
+
+  if(Number(win.level)===1){
+    // City draw: use this city's own guide only.
+    guide=cityGuide[city];
+
+    if(guide){
+      scope='市级推荐';
+      sourceName=city;
+    }
+  }else{
+    // County/township draw: county guide first.
+    if(countyNode){
+      guide=countyGuide[city+'|'+county];
+
+      if(guide){
+        scope='区县级推荐';
+        sourceName=county;
+      }
+    }
+
+    // If county guide is unavailable, fall back to its city guide.
+    if(!guide&&city){
+      guide=cityGuide[city];
+
+      if(guide){
+        scope='市级推荐（区县资料缺失，回退）';
+        sourceName=city;
+      }
+    }
+  }
+
+  const foods=guide&&Array.isArray(guide.foods)
+    ? guide.foods.filter(Boolean)
+    : [];
+
+  const sites=guide&&Array.isArray(guide.sites)
+    ? guide.sites.filter(Boolean)
+    : [];
+
+  return {
+    city,
+    county,
+    selected,
+    scope,
+    sourceName,
+    foods:foods.slice(0,4),
+    sites:sites.slice(0,3),
+    hasFoods:foods.length>0,
+    hasSites:sites.length>0,
+    complete:foods.length>0&&sites.length>0
+  };
 }
 
 function nm(x){return x.fullName||x.name||''}
