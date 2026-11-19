@@ -44,14 +44,31 @@ export default async (req) => {
       if (!isAdmin(req)) return json({ error: 'Unauthorized' }, 401);
       const b = await readBody(req); const adcode = String(b.adcode || '');
       if (!isAdcode(adcode)) return json({ error: 'adcode 必须是六位数字' }, 400);
-      const clean = (items, kind) => {
-        if (!Array.isArray(items) || items.length < 3) throw new Error(`${kind}至少需要3条经核实的记录`);
-        return items.map((x, i) => {
-          const item = typeof x === 'string' ? { name: x } : x;
-          if (!item || typeof item.name !== 'string' || !item.name.trim() || typeof item.source !== 'string' || !item.source.trim() || typeof item.sourceUrl !== 'string' || !/^https:\/\//i.test(item.sourceUrl)) throw new Error(`${kind}第${i+1}条必须包含 name、source 和 https 来源链接`);
-          return { name: item.name.trim(), source: item.source.trim(), sourceUrl: item.sourceUrl.trim(), note: String(item.note || '').trim() };
-        });
-      };
+      
+const clean = (items, kind) => {
+  if (!Array.isArray(items) || items.length < 3) {
+    throw new Error(`${kind}至少需要3条记录`);
+  }
+
+  return items.map((x, i) => {
+    const item = typeof x === 'string' ? { name: x } : x;
+
+    if (!item || typeof item.name !== 'string' || !item.name.trim()) {
+      throw new Error(`${kind}第${i + 1}条缺少有效名称`);
+    }
+
+    return {
+      name: item.name.trim(),
+      category: String(item.category || '').trim(),
+      description: String(item.description || '').trim(),
+      address: String(item.address || '').trim(),
+      rating: item.rating ?? null,
+      recommendationType: String(item.recommendationType || '').trim(),
+      note: String(item.note || '').trim()
+    };
+  });
+};
+
       const record = { districtName: String(b.districtName || '').trim(), cityName: String(b.cityName || '').trim(), foods: clean(b.foods, '美食'), sites: clean(b.sites, '景点'), scope: '区县级推荐', verifiedAt: new Date().toISOString(), verificationNote: String(b.verificationNote || '已人工核实区县归属及推荐代表性') };
       await store.setJSON(`approved/${adcode}`, record);
       return json({ ok: true, adcode, message: '区县级推荐已发布' });
