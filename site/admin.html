@@ -1,28 +1,445 @@
-<!doctype html>
-<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>区县资料库管理后台</title>
-<style>
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#182433;background:#f3f6fa}*{box-sizing:border-box}body{max-width:1100px;margin:0 auto;padding:24px}h1{margin:0 0 8px}.muted{color:#617084;font-size:14px}.card{background:#fff;border:1px solid #dbe3ed;border-radius:14px;padding:18px;margin:16px 0;box-shadow:0 4px 18px #1a35500b}label{display:block;font-weight:650;margin:12px 0 6px}input,textarea,button{font:inherit}input,textarea{width:100%;border:1px solid #cbd5e1;border-radius:9px;padding:10px;background:white}textarea{min-height:120px;font-family:ui-monospace,monospace;font-size:13px}button{border:0;border-radius:9px;padding:10px 16px;background:#1769aa;color:#fff;font-weight:650;cursor:pointer;margin:8px 8px 0 0}button.secondary{background:#526477}button:disabled{opacity:.5;cursor:not-allowed}.row{display:grid;grid-template-columns:1fr 1fr;gap:16px}.status{white-space:pre-wrap;background:#f7fafc;border-radius:9px;padding:12px;margin-top:12px;font-size:13px}.candidate{border:1px solid #e2e8f0;border-radius:10px;padding:10px;margin:8px 0}.candidate b{display:block}.candidate small{color:#64748b}.warn{color:#9a4d00;background:#fff7e8;padding:10px;border-radius:8px}@media(max-width:700px){.row{grid-template-columns:1fr}body{padding:14px}}
-</style></head><body>
-<h1>全国区县美食与景点资料库</h1><p class="muted">管理后台 · 仅供站点管理员使用。候选 POI 不会自动展示给访客，必须核实并审核发布。</p>
-<div class="card"><label for="token">后台管理令牌 ADMIN_TOKEN</label><input id="token" type="password" autocomplete="off" placeholder="粘贴 Netlify 环境变量中的 ADMIN_TOKEN"><p class="muted">令牌只保存在当前页面内存中，不写入浏览器存储。请勿在公共电脑使用。</p><button id="health" class="secondary">检查服务状态</button><button id="coverage" class="secondary">查看覆盖率</button><div id="topstatus" class="status">等待连接…</div></div>
-<div class="card"><h2>1. 批量采集区县候选资料</h2><p class="muted">每批最多 25 个六位区县 adcode。每个区县会分别检索地方美食／特色小吃和旅游景点／风景名胜。建议先用 5–10 个区县测试，再扩大批次。</p><label for="codes">区县 adcode（每行一个，也可用逗号分隔）</label><textarea id="codes" placeholder="例如：\n330106\n330108\n330110"></textarea><button id="start">开始后台采集</button><div id="jobstatus" class="status">尚未启动任务。</div></div>
-<div class="card"><h2>2. 查看某个区县的候选资料</h2><label for="adcode">区县 adcode</label><input id="adcode" inputmode="numeric" maxlength="6" placeholder="例如 330106"><button id="loadCandidate">读取候选资料</button><div id="candidateResult" class="status">尚未读取。</div></div>
-<div class="card"><h2>3. 审核并发布区县推荐</h2><p class="warn">发布前请逐条核对：美食是否确为当地特色、景点是否位于该区县内、来源链接是否能支持推荐。每类至少 3 条。不要把普通餐饮商户直接写成地方特色菜。</p><div class="row"><div><label for="districtName">区县名称</label><input id="districtName" placeholder="如：西湖区"><label for="cityName">所属市</label><input id="cityName" placeholder="如：杭州市"></div><div><label for="approvalAdcode">六位 adcode</label><input id="approvalAdcode" maxlength="6" placeholder="330106"><label for="verificationNote">核实备注</label><input id="verificationNote" value="已核对行政区归属、地方代表性及来源链接"></div></div><label for="foods">美食 JSON（每条必须有 name、source、sourceUrl）</label><textarea id="foods">[
-  {"name":"当地特色美食1","source":"地方文旅/非遗/权威媒体","sourceUrl":"https://example.com/source-1"},
-  {"name":"当地特色美食2","source":"地方文旅/非遗/权威媒体","sourceUrl":"https://example.com/source-2"},
-  {"name":"当地特色美食3","source":"地方文旅/非遗/权威媒体","sourceUrl":"https://example.com/source-3"}
-]</textarea><label for="sites">景点 JSON（每条必须有 name、source、sourceUrl）</label><textarea id="sites">[
-  {"name":"区内代表景点1","source":"景区官网/地方文旅部门","sourceUrl":"https://example.com/site-1"},
-  {"name":"区内代表景点2","source":"景区官网/地方文旅部门","sourceUrl":"https://example.com/site-2"},
-  {"name":"区内代表景点3","source":"景区官网/地方文旅部门","sourceUrl":"https://example.com/site-3"}
-]</textarea><button id="publish">审核通过并发布</button><div id="publishStatus" class="status">尚未发布。</div></div>
-<script>
-const $=id=>document.getElementById(id);const token=()=> $('token').value.trim();const headers=()=>({'authorization':'Bearer '+token(),'content-type':'application/json'});const show=(id,v)=>$(id).textContent=typeof v==='string'?v:JSON.stringify(v,null,2);
-async function api(url,opts={}){const r=await fetch(url,{...opts,headers:{...headers(),...(opts.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);return d}
-$('health').onclick=async()=>{try{const d=await fetch('/api/health').then(r=>r.json());show('topstatus',d)}catch(e){show('topstatus',e.message)}};
-$('coverage').onclick=async()=>{try{show('topstatus',await api('/api/admin/coverage'))}catch(e){show('topstatus',e.message)}};
-$('start').onclick=async()=>{const adcodes=[...new Set($('codes').value.split(/[\s,，;；]+/).map(x=>x.trim()).filter(Boolean))];if(!adcodes.length)return show('jobstatus','请先输入区县 adcode');if(adcodes.length>25)return show('jobstatus','每批最多25个，请拆分批次');const jobId='job-'+crypto.randomUUID();try{const r=await fetch('/.netlify/functions/sync-batch-background',{method:'POST',headers:headers(),body:JSON.stringify({jobId,adcodes})});if(!r.ok){let d={};try{d=await r.json()}catch{}throw new Error(d.error||`HTTP ${r.status}`)}show('jobstatus',`任务已提交：${jobId}\n区县数：${adcodes.length}\n后台正在采集，页面保持打开即可查看进度。`);const poll=async()=>{try{const d=await api('/api/admin/job?jobId='+encodeURIComponent(jobId));show('jobstatus',d);if(d.status==='running')setTimeout(poll,5000)}catch(e){show('jobstatus',e.message)}};setTimeout(poll,3000)}catch(e){show('jobstatus',e.message)}};
-$('loadCandidate').onclick=async()=>{const code=$('adcode').value.trim();try{const d=await api('/api/admin/candidates?adcode='+encodeURIComponent(code));$('approvalAdcode').value=code;$('districtName').value=d.name||'';show('candidateResult',d);const foods=(d.foodCandidates||[]).slice(0,12).map(x=>`${x.name}｜${x.district||''}｜${x.address||''}｜${x.tag||''}｜评分:${x.rating||'无'}`).join('\n');const sites=(d.siteCandidates||[]).slice(0,12).map(x=>`${x.name}｜${x.district||''}｜${x.address||''}`).join('\n');$('candidateResult').textContent='【美食候选】\n'+foods+'\n\n【景点候选】\n'+sites+'\n\n完整 JSON 已在后台存储，可通过 API 获取。请自行补充权威来源链接后再发布。'}catch(e){show('candidateResult',e.message)}};
-$('publish').onclick=async()=>{try{const body={adcode:$('approvalAdcode').value.trim(),districtName:$('districtName').value.trim(),cityName:$('cityName').value.trim(),verificationNote:$('verificationNote').value.trim(),foods:JSON.parse($('foods').value),sites:JSON.parse($('sites').value)};show('publishStatus',await api('/api/admin/approve',{method:'POST',body:JSON.stringify(body)}))}catch(e){show('publishStatus',e.message)}};
-</script></body></html>
 
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>全国区县资料库管理后台</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#182433;background:#f3f6fa}
+*{box-sizing:border-box}
+body{max-width:1200px;margin:0 auto;padding:22px}
+h1{margin:0 0 8px}
+h2{font-size:19px}
+.muted{color:#64748b;font-size:13px}
+.card{background:#fff;border:1px solid #dbe3ed;border-radius:14px;padding:18px;margin:16px 0}
+label{display:block;font-weight:650;margin:10px 0 5px}
+input,select,textarea,button{font:inherit}
+input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:9px;background:white}
+textarea{min-height:100px;font-family:monospace;font-size:13px}
+button{border:0;border-radius:8px;padding:9px 15px;background:#1769aa;color:white;font-weight:650;cursor:pointer;margin:7px 7px 0 0}
+button.secondary{background:#526477}
+button.danger{background:#a33b35}
+button:disabled{opacity:.5;cursor:not-allowed}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.status{white-space:pre-wrap;background:#f7fafc;border-radius:8px;padding:12px;margin-top:12px;font-size:13px;overflow-wrap:anywhere}
+.warn{background:#fff7e8;color:#875000;padding:10px;border-radius:8px;font-size:13px}
+.toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0}
+.toolbar button{margin:0}
+.candidate{border:1px solid #dbe3ed;border-radius:10px;padding:12px;margin:9px 0}
+.candidate-top{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+.candidate-top input[type=checkbox]{width:19px;height:19px}
+.candidate-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.candidate-fields .wide{grid-column:1/-1}
+.candidate small{color:#64748b}
+.section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.count{font-size:13px;color:#526477}
+@media(max-width:700px){body{padding:12px}.row,.candidate-fields{grid-template-columns:1fr}.candidate-fields .wide{grid-column:auto}}
+</style>
+</head>
+<body>
+
+<h1>全国区县美食与景点资料库</h1>
+<p class="muted">管理员后台 · 候选数据必须经过人工核实后才会发布给访客。</p>
+
+<div class="card">
+<h2>管理员登录</h2>
+<label for="token">ADMIN_TOKEN</label>
+<input id="token" type="password" autocomplete="off" placeholder="输入 Netlify 环境变量中的 ADMIN_TOKEN">
+<p class="muted">令牌仅保存在当前页面内存中，不会写入浏览器存储。</p>
+<button id="health" class="secondary">检查服务状态</button>
+<button id="coverage" class="secondary">查看资料覆盖率</button>
+<div id="topstatus" class="status">等待连接…</div>
+</div>
+
+<div class="card">
+<h2>1. 批量采集区县候选资料</h2>
+<p class="muted">每批最多25个六位 adcode。建议先测试5–10个区县。</p>
+<label for="codes">区县 adcode（每行一个，也可用逗号分隔）</label>
+<textarea id="codes" placeholder="330106&#10;330108&#10;330110"></textarea>
+<button id="start">开始后台采集</button>
+<div id="jobstatus" class="status">尚未启动任务。</div>
+</div>
+
+<div class="card">
+<h2>2. 读取区县候选资料</h2>
+<label for="adcode">区县 adcode</label>
+<input id="adcode" inputmode="numeric" maxlength="6" placeholder="例如 330106">
+<button id="loadCandidate">读取候选资料</button>
+<div id="candidateStatus" class="status">尚未读取。</div>
+</div>
+
+<div class="card">
+<h2>3. 审核并发布</h2>
+<div class="warn">
+请人工核实每条资料的行政区归属和代表性。地方特色美食不能仅凭餐厅评分判断；普通餐饮体验不能冒充地方特色。每类至少保留3条。来源链接不再作为必填字段。
+</div>
+
+<div class="row">
+<div>
+<label for="districtName">区县名称</label>
+<input id="districtName" placeholder="例如：西湖区">
+</div>
+<div>
+<label for="cityName">所属市</label>
+<input id="cityName" placeholder="例如：杭州市">
+</div>
+</div>
+<label for="approvalAdcode">六位 adcode</label>
+<input id="approvalAdcode" maxlength="6" placeholder="330106">
+<label for="verificationNote">本次审核备注</label>
+<input id="verificationNote" value="已人工核对行政区归属、推荐代表性及重复项">
+
+<div class="section-title">
+<h2>美食候选</h2>
+<span id="foodCount" class="count">已选择0条</span>
+</div>
+<p class="muted">逐条勾选保留，并选择地方特色美食或普通餐饮体验。名称、地址和描述均可编辑。</p>
+<div class="toolbar">
+<button class="secondary" id="selectFoods">全选美食</button>
+<button class="secondary" id="clearFoods">全部取消</button>
+<button class="secondary" id="addFood">手动添加美食</button>
+<button class="secondary" id="dedupeFoods">美食去重</button>
+</div>
+<div id="foodsList"></div>
+
+<div class="section-title">
+<h2>景点候选</h2>
+<span id="siteCount" class="count">已选择0条</span>
+</div>
+<p class="muted">逐条勾选保留，并选择自然景点或文化景点。综合景区与内部子景点请人工判断，避免同轮重复推荐。</p>
+<div class="toolbar">
+<button class="secondary" id="selectSites">全选景点</button>
+<button class="secondary" id="clearSites">全部取消</button>
+<button class="secondary" id="addSite">手动添加景点</button>
+<button class="secondary" id="dedupeSites">景点去重</button>
+</div>
+<div id="sitesList"></div>
+
+<button id="publish">审核通过并发布</button>
+<div id="publishStatus" class="status">尚未发布。</div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const token=()=>$('token').value.trim();
+const headers=()=>({
+  'authorization':'Bearer '+token(),
+  'content-type':'application/json'
+});
+const show=(id,v)=>$(id).textContent=
+  typeof v==='string'?v:JSON.stringify(v,null,2);
+
+let foods=[];
+let sites=[];
+
+async function api(url,opts={}){
+  const r=await fetch(url,{
+    ...opts,
+    headers:{...headers(),...(opts.headers||{})}
+  });
+  let d={};
+  try{d=await r.json()}catch{}
+  if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);
+  return d;
+}
+
+function normalizeName(s){
+  return String(s||'').toLowerCase()
+    .replace(/[\s·•，,。.!！?？（）()【】\-_]/g,'');
+}
+
+function cleanDuplicates(items){
+  const seen=new Set();
+  return items.filter(x=>{
+    const key=normalizeName(x.name)+'|'+normalizeName(x.address);
+    if(!normalizeName(x.name)||seen.has(key))return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function makeItem(x,kind){
+  if(typeof x==='string')x={name:x};
+  x=x||{};
+  return {
+    selected:true,
+    name:String(x.name||''),
+    category:String(x.category||''),
+    description:String(x.description||x.tag||''),
+    address:String(x.address||''),
+    rating:x.rating??'',
+    recommendationType:String(x.recommendationType||''),
+    note:String(x.note||''),
+    kind
+  };
+}
+
+function typeOptions(kind){
+  if(kind==='food')return [
+    ['','请选择分类'],
+    ['local_specialty','地方特色美食'],
+    ['local_restaurant','普通餐饮体验']
+  ];
+  return [
+    ['','请选择分类'],
+    ['scenic_spot','自然景点'],
+    ['cultural_site','文化景点']
+  ];
+}
+
+function renderList(kind){
+  const items=kind==='food'?foods:sites;
+  const target=$(kind==='food'?'foodsList':'sitesList');
+  target.replaceChildren();
+
+  items.forEach((item,index)=>{
+    const box=document.createElement('div');
+    box.className='candidate';
+
+    const top=document.createElement('div');
+    top.className='candidate-top';
+
+    const check=document.createElement('input');
+    check.type='checkbox';
+    check.checked=item.selected;
+    check.addEventListener('change',()=>{
+      item.selected=check.checked;
+      updateCount(kind);
+    });
+
+    const name=document.createElement('input');
+    name.value=item.name;
+    name.placeholder='资料名称';
+    name.addEventListener('input',()=>item.name=name.value);
+
+    top.append(check,name);
+    box.append(top);
+
+    const fields=document.createElement('div');
+    fields.className='candidate-fields';
+
+    const category=document.createElement('select');
+    typeOptions(kind).forEach(([value,label])=>{
+      const op=document.createElement('option');
+      op.value=value;
+      op.textContent=label;
+      category.append(op);
+    });
+    category.value=item.recommendationType;
+    category.addEventListener('change',()=>{
+      item.recommendationType=category.value;
+      item.category=category.options[category.selectedIndex].textContent;
+    });
+    fields.append(category);
+
+    const rating=document.createElement('input');
+    rating.placeholder='评分（可留空）';
+    rating.value=item.rating;
+    rating.addEventListener('input',()=>item.rating=rating.value);
+    fields.append(rating);
+
+    const address=document.createElement('input');
+    address.className='wide';
+    address.placeholder='详细地址';
+    address.value=item.address;
+    address.addEventListener('input',()=>item.address=address.value);
+    fields.append(address);
+
+    const desc=document.createElement('input');
+    desc.className='wide';
+    desc.placeholder=kind==='food'?'菜品特色或推荐描述':'景点简介';
+    desc.value=item.description;
+    desc.addEventListener('input',()=>item.description=desc.value);
+    fields.append(desc);
+
+    const note=document.createElement('input');
+    note.className='wide';
+    note.placeholder='审核备注（可留空）';
+    note.value=item.note;
+    note.addEventListener('input',()=>item.note=note.value);
+    fields.append(note);
+
+    box.append(fields);
+
+    const hint=document.createElement('small');
+    hint.textContent=`候选序号：${index+1} · ${item.selected?'已勾选':'未勾选'}`;
+    box.append(hint);
+
+    target.append(box);
+  });
+
+  updateCount(kind);
+}
+
+function updateCount(kind){
+  const items=kind==='food'?foods:sites;
+  const count=items.filter(x=>x.selected).length;
+  $(kind==='food'?'foodCount':'siteCount').textContent=
+    `已选择${count}条 / 共${items.length}条`;
+}
+
+function addItem(kind){
+  const item=makeItem({name:''},kind);
+  if(kind==='food')foods.push(item);
+  else sites.push(item);
+  renderList(kind);
+}
+
+function dedupe(kind){
+  if(kind==='food')foods=cleanDuplicates(foods);
+  else sites=cleanDuplicates(sites);
+  renderList(kind);
+}
+
+$('health').onclick=async()=>{
+  try{
+    const d=await fetch('/api/health').then(r=>r.json());
+    show('topstatus',d);
+  }catch(e){show('topstatus',e.message)}
+};
+
+$('coverage').onclick=async()=>{
+  try{show('topstatus',await api('/api/admin/coverage'))}
+  catch(e){show('topstatus',e.message)}
+};
+
+$('start').onclick=async()=>{
+  const adcodes=[...new Set(
+    $('codes').value.split(/[\s,，;；]+/)
+      .map(x=>x.trim()).filter(Boolean)
+  )];
+  if(!adcodes.length)return show('jobstatus','请先输入区县 adcode');
+  if(adcodes.length>25)return show('jobstatus','每批最多25个，请拆分批次');
+  if(adcodes.some(x=>!/^\d{6}$/.test(x)))
+    return show('jobstatus','请检查输入，所有 adcode 必须是六位数字');
+
+  const jobId='job-'+crypto.randomUUID();
+  try{
+    const r=await fetch('/.netlify/functions/sync-batch-background',{
+      method:'POST',
+      headers:headers(),
+      body:JSON.stringify({jobId,adcodes})
+    });
+    let d={};
+    try{d=await r.json()}catch{}
+    if(!r.ok)throw new Error(d.error||`HTTP ${r.status}`);
+
+    show('jobstatus',`任务已提交：${jobId}\n区县数：${adcodes.length}`);
+    const poll=async()=>{
+      try{
+        const result=await api('/api/admin/job?jobId='+encodeURIComponent(jobId));
+        show('jobstatus',result);
+        if(result.status==='running')setTimeout(poll,5000);
+      }catch(e){show('jobstatus',e.message)}
+    };
+    setTimeout(poll,3000);
+  }catch(e){show('jobstatus',e.message)}
+};
+
+$('loadCandidate').onclick=async()=>{
+  const code=$('adcode').value.trim();
+  if(!/^\d{6}$/.test(code))
+    return show('candidateStatus','请输入六位 adcode');
+
+  try{
+    const d=await api('/api/admin/candidates?adcode='+encodeURIComponent(code));
+    $('approvalAdcode').value=code;
+    $('districtName').value=d.districtName||d.name||'';
+    $('cityName').value=d.cityName||'';
+
+    foods=(d.foodCandidates||[]).map(x=>makeItem(x,'food'));
+    sites=(d.siteCandidates||[]).map(x=>makeItem(x,'site'));
+
+    foods=cleanDuplicates(foods);
+    sites=cleanDuplicates(sites);
+
+    renderList('food');
+    renderList('site');
+
+    show('candidateStatus',
+      `读取成功：${$('districtName').value||code}\n`+
+      `美食候选：${foods.length}条\n景点候选：${sites.length}条\n`+
+      '请逐条审核分类、名称和行政区归属。'
+    );
+  }catch(e){show('candidateStatus',e.message)}
+};
+
+$('selectFoods').onclick=()=>{
+  foods.forEach(x=>x.selected=true);renderList('food');
+};
+$('clearFoods').onclick=()=>{
+  foods.forEach(x=>x.selected=false);renderList('food');
+};
+$('addFood').onclick=()=>addItem('food');
+$('dedupeFoods').onclick=()=>dedupe('food');
+
+$('selectSites').onclick=()=>{
+  sites.forEach(x=>x.selected=true);renderList('site');
+};
+$('clearSites').onclick=()=>{
+  sites.forEach(x=>x.selected=false);renderList('site');
+};
+$('addSite').onclick=()=>addItem('site');
+$('dedupeSites').onclick=()=>dedupe('site');
+
+$('publish').onclick=async()=>{
+  try{
+    const adcode=$('approvalAdcode').value.trim();
+    if(!/^\d{6}$/.test(adcode))throw new Error('请输入六位 adcode');
+
+    const selectedFoods=foods.filter(x=>x.selected);
+    const selectedSites=sites.filter(x=>x.selected);
+
+    if(selectedFoods.length<3)throw new Error('至少选择3条美食');
+    if(selectedSites.length<3)throw new Error('至少选择3条景点');
+
+    const missing=[...selectedFoods,...selectedSites].find(x=>
+      !x.name.trim()||!x.recommendationType
+    );
+    if(missing)throw new Error('请检查：所有勾选记录都必须填写名称并选择分类');
+
+    const toRecord=x=>({
+      name:x.name.trim(),
+      category:x.category,
+      description:x.description.trim(),
+      address:x.address.trim(),
+      rating:x.rating===''?null:Number(x.rating),
+      recommendationType:x.recommendationType,
+      note:x.note.trim()
+    });
+
+    const body={
+      adcode,
+      districtName:$('districtName').value.trim(),
+      cityName:$('cityName').value.trim(),
+      verificationNote:$('verificationNote').value.trim(),
+      foods:selectedFoods.map(toRecord),
+      sites:selectedSites.map(toRecord)
+    };
+
+    if(!body.districtName||!body.cityName)
+      throw new Error('请填写区县名称和所属市');
+
+    if(!confirm(
+      `即将发布 ${body.districtName} 的资料：\n`+
+      `美食 ${body.foods.length} 条\n景点 ${body.sites.length} 条\n\n确认已经人工核实？`
+    ))return;
+
+    $('publish').disabled=true;
+    show('publishStatus','正在提交…');
+
+    const result=await api('/api/admin/approve',{
+      method:'POST',
+      body:JSON.stringify(body)
+    });
+    show('publishStatus',result);
+  }catch(e){
+    show('publishStatus',e.message);
+  }finally{
+    $('publish').disabled=false;
+  }
+};
+</script>
+</body>
+</html>
