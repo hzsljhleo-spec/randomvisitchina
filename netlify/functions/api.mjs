@@ -68,7 +68,6 @@ const clean = (items, kind) => {
     };
   });
 };
-
       const record = { districtName: String(b.districtName || '').trim(), cityName: String(b.cityName || '').trim(), foods: clean(b.foods, '美食'), sites: clean(b.sites, '景点'), scope: '区县级推荐', verifiedAt: new Date().toISOString(), verificationNote: String(b.verificationNote || '已人工核实区县归属及推荐代表性') };
       await store.setJSON(`approved/${adcode}`, record);
       return json({ ok: true, adcode, message: '区县级推荐已发布' });
